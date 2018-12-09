@@ -4,6 +4,8 @@ import itertools
 # from sklearn.model_selection import train_test_split
 # from sklearn.metrics import confusion_matrix
 import os
+import pickle
+import json
 
 # from sympy import factorial
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
@@ -11,8 +13,9 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.metrics import categorical_crossentropy, categorical_accuracy, top_k_categorical_accuracy
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, Conv2D, Activation
 from tensorflow.python.platform import gfile
+from sklearn.metrics import confusion_matrix
 import tensorflow as tf
 import numpy as np
 # import pandas as pd
@@ -22,6 +25,7 @@ import collections
 import re
 import hashlib
 from tensorflow.python.util import compat
+from sklearn.metrics import classification_report
 
 MAX_NUM_IMAGES_PER_CLASS = 2 ** 27 - 1  # ~134M
 
@@ -120,48 +124,52 @@ class ModelTrain:
     def top_5_accuracy(self, y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
-    def data_augmentation(self, base_dir, batch_size=50, image_size=224, num_img_aug=500):
-        aug_dir = base_dir + '_aug'
-        # if not os.path.exists(aug_dir):
-        #     os.mkdir(aug_dir)
-        # for folder in os.listdir(base_dir):
-        #     print(os.path.join(base_dir, folder))
-        #     folder_path = os.path.join(base_dir, folder)
-        #     folder_path_aug = folder_path.replace(base_dir, aug_dir)
-        #     if not os.path.exists(folder_path_aug+'_aug'):
-        #         os.mkdir(folder_path_aug+'_aug')
-        #     for sub_folder in os.listdir(os.path.join(base_dir, folder)):
-        #         path = os.path.join(base_dir, folder).replace(base_dir, aug_dir)
-        #         save_path = path + '_aug'
-        #         save_path = os.path.join(save_path, sub_folder)
-        #         sub_folder_path = os.path.join(folder_path, sub_folder)
-        #         print('sub folder path', sub_folder_path)
-        #         # print('folder path', save_path)
-        #         if not os.path.exists(save_path):
-        #             os.mkdir(save_path)
-        #         print('save_path', save_path)
-        #         data_aug_gen = ImageDataGenerator(
-        #             rotation_range=180,
-        #             width_shift_range=0.1,
-        #             height_shift_range=0.1,
-        #             zoom_range=0.1,
-        #             horizontal_flip=True,
-        #             vertical_flip=True,
-        #             fill_mode='nearest'
-        #         )
-        #         aug_datagen = data_aug_gen.flow_from_directory(
-        #             directory=os.path.join(base_dir, folder),
-        #             save_to_dir=save_path,
-        #             save_format='jpg',
-        #             target_size=(image_size, image_size),
-        #             batch_size=batch_size
-        #         )
-        #
-        #         num_files = len(os.listdir(base_dir))
-        #         num_batches = int(np.ceil((num_img_aug - num_files) / batch_size))
-        #
-        #         for i in range(0, num_batches):
-        #             imgs, labels = next(aug_datagen)
+    def data_augmentation(self, batch_size=1, image_size=224, num_img_aug=500):
+        aug_dir = self.train_dir + '_aug'
+        if not os.path.exists(aug_dir):
+            os.mkdir(aug_dir)
+        for folder in os.listdir(self.train_dir):
+            print(os.path.join(self.train_dir, folder))
+            folder_path = os.path.join(self.train_dir, folder)
+            folder_path_aug = folder_path.replace(self.train_dir, aug_dir)
+            if not os.path.exists(folder_path_aug + '_aug'):
+                os.mkdir(folder_path_aug + '_aug')
+            for sub_folder in os.listdir(os.path.join(self.train_dir, folder)):
+                path = os.path.join(self.train_dir, folder).replace(self.train_dir, aug_dir)
+                save_path = path + '_aug'
+                save_path = os.path.join(save_path, sub_folder)
+                sub_folder_path = os.path.join(folder_path, sub_folder)
+                print('sub folder path', sub_folder_path)
+                # print('folder path', save_path)
+                if not os.path.exists(save_path):
+                    os.mkdir(save_path)
+                print('save_path', save_path)
+                data_aug_gen = ImageDataGenerator(
+                    rotation_range=180,
+                    width_shift_range=0.1,
+                    height_shift_range=0.1,
+                    zoom_range=0.1,
+                    horizontal_flip=True,
+                    vertical_flip=True,
+                    fill_mode='nearest'
+                )
+                path_dir = os.path.join(self.train_dir, folder)
+                print('direktori: ', os.path.join(path_dir, sub_folder))
+                ini_dir = os.path.join(path_dir, sub_folder)
+                aug_datagen = data_aug_gen.flow_from_directory(
+                    directory=ini_dir,
+                    save_to_dir=save_path,
+                    save_format='jpg',
+                    target_size=(image_size, image_size),
+                    batch_size=batch_size
+                )
+
+                num_files = len(os.listdir(ini_dir))
+                # print(num_files)
+                num_batches = int(np.ceil((num_img_aug - num_files) / batch_size))
+
+                for i in range(0, num_batches):
+                    imgs, labels = next(aug_datagen)
 
         for folder in os.listdir(aug_dir):
             path = os.path.join(aug_dir, folder)
@@ -172,6 +180,60 @@ class ModelTrain:
                     self.num_train_samples += len(os.listdir(sub_path))
                 elif 'val' in sub_path:
                     self.num_val_samples += len(os.listdir(sub_path))
+        print('num train', self.num_train_samples)
+        print('num val', self.num_val_samples)
+
+    def data_augmentation2(self, batch_size=16, image_size=224, num_img_aug=1000):
+        self.aug_dir = self.train_dir + '_aug'
+        if not os.path.exists(self.aug_dir):
+            os.mkdir(self.aug_dir)
+        for folder in os.listdir(self.train_dir):  # Kelas
+            print(os.path.join(self.train_dir, folder))
+            folder_path = os.path.join(self.train_dir, folder)
+            folder_path_aug = folder_path.replace(self.train_dir, self.aug_dir)
+            if not os.path.exists(folder_path_aug):
+                os.mkdir(folder_path_aug)
+
+            data_aug_gen = ImageDataGenerator(
+                rotation_range=180,
+                width_shift_range=0.1,
+                height_shift_range=0.1,
+                zoom_range=0.1,
+                horizontal_flip=True,
+                vertical_flip=True,
+                fill_mode='nearest'
+            )
+            path_dir = os.path.join(self.train_dir, folder)
+            # print('direktori: ', os.path.join(path_dir, sub_folder))
+            print('direktori: ', os.path.join(self.train_dir, folder))
+            # ini_dir = os.path.join(path_dir, sub_folder)
+            ini_dir = os.path.join(self.train_dir, folder)
+            aug_datagen = data_aug_gen.flow_from_directory(
+                directory=ini_dir,
+                save_to_dir=folder_path_aug,
+                save_format='jpg',
+                target_size=(image_size, image_size),
+                batch_size=batch_size
+            )
+
+            num_files = len(os.listdir(ini_dir))
+            # print(num_files)
+            num_batches = int(np.ceil((num_img_aug - num_files) / batch_size))
+
+            for i in range(0, num_batches):
+                imgs, labels = next(aug_datagen)
+                # self.plots(imgs, titles=None, fname=ini_dir + '\\fig'+str(i)+'.jpg')
+
+        for folder in os.listdir(self.aug_dir):
+            path = os.path.join(self.aug_dir, folder)
+            print('There are {} images in {}'.format(len(os.listdir(path)), folder))
+            self.num_train_samples += len(os.listdir(path))
+
+        for folder in os.listdir(self.val_dir):
+            path = os.path.join(self.val_dir, folder)
+            print('There are {} images in {}'.format(len(os.listdir(path)), folder))
+            self.num_val_samples += len(os.listdir(path))
+
         print('num train', self.num_train_samples)
         print('num val', self.num_val_samples)
 
@@ -191,7 +253,7 @@ class ModelTrain:
             preprocessing_function=
             tf.keras.applications.mobilenet.preprocess_input
         )
-        self.train_batches = datagen.flow_from_directory(directory=self.train_dir,
+        self.train_batches = datagen.flow_from_directory(directory=self.aug_dir,
                                                          target_size=(
                                                              image_size, image_size),
                                                          batch_size=train_batch_size)
@@ -213,8 +275,12 @@ class ModelTrain:
                           tf.keras.applications.mobilenet.MobileNet(),
                       'mobilenet_v2':
                           tf.keras.applications.mobilenet_v2.MobileNetV2()}
-        x = model_list[model].layers[-6].output
+        x = model_list[model].layers[-5].output
         x = Dropout(dropout)(x)
+        x = Conv2D(7, (1, 1),
+                          padding='same',
+                          name='conv_preds')(x)
+        x = Activation('softmax', name='act_softmax')(x)
         predictions = Dense(7, activation='softmax')(x)
         self.new_model = Model(inputs=model_list[model].input, outputs=predictions)
 
@@ -232,11 +298,11 @@ class ModelTrain:
         if not class_weights:
             class_weights = {
                 0: 1.0,  # akiec
-                1: 1.0,  # bcc
-                2: 1.0,  # bkl
-                3: 1.0,  # df
-                4: 3.0,  # mel # Try to make the model more sensitive to Melanoma.
-                5: 1.0,  # nv
+                1: 0.8,  # bcc
+                2: 0.6,  # bkl
+                3: 0.6,  # df
+                4: 1.0,  # mel
+                5: 0.5,  # nv
                 6: 1.0,  # vasc
             }
 
@@ -249,13 +315,20 @@ class ModelTrain:
 
         callbacks_list = [checkpoint, reduce_lr]
 
-        history = self.new_model.fit_generator(self.train_batches,
-                                               steps_per_epoch=self.train_steps,
-                                               class_weight=class_weights,
-                                               validation_data=self.valid_batches,
-                                               validation_steps=self.val_steps,
-                                               epochs=epochs, verbose=1,
-                                               callbacks=callbacks_list)
+        self.history = self.new_model.fit_generator(self.train_batches,
+                                                    steps_per_epoch=self.train_steps,
+                                                    class_weight=class_weights,
+                                                    validation_data=self.valid_batches,
+                                                    validation_steps=self.val_steps,
+                                                    epochs=epochs, verbose=1,
+                                                    callbacks=callbacks_list)
+
+        with open('trainHistoryDict', 'wb') as file_pi:
+            pickle.dump(self.history.history, file_pi)
+
+        # with open('historyfile.json', 'w') as f:
+        #     json.dump(self.history.history, f)
+
         # serialize model to JSON
         model_json = self.new_model.to_json()
         with open("last_step_model.json", "w") as json_file:
@@ -288,6 +361,81 @@ class ModelTrain:
 
         print('val_top_3_acc:', val_top_3_acc)
 
+    def make_predictions(self):
+        predictions = self.new_model.predict_generator(self.test_batches, steps=self.num_val_samples, verbose=1)
+        test_labels = self.test_batches.classes
+        cm = confusion_matrix(test_labels, predictions.argmax(axis=1))
+        cm_plot_labels = ['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'vasc']
+        self.plot_confusion_matrix(cm, cm_plot_labels, title='Confusion Matrix')
+        y_pred = np.argmax(predictions, axis=1)
+        y_true = self.test_batches.classes
+        report = classification_report(y_true, y_pred, target_names=cm_plot_labels)
+        print(report)
+        '''
+        Recall = Given a class, will the classifier be able to detect it?
+        Precision = Given a class prediction from a classifier, how likely is it to be correct?
+        F1 Score = The harmonic mean of the recall and precision. Essentially, it punishes extreme values.
+        '''
+
+
+    def save_learning_curves(self):
+        acc = self.history.history['categorical_accuracy']
+        val_acc = self.history.history['val_categorical_accuracy']
+        loss = self.history.history['loss']
+        val_loss = self.history.history['val_loss']
+        train_top2_acc = self.history.history['top_2_accuracy']
+        val_top2_acc = self.history.history['val_top_2_accuracy']
+        train_top3_acc = self.history.history['top_3_accuracy']
+        val_top3_acc = self.history.history['val_top_3_accuracy']
+        epochs = range(1, len(acc) + 1)
+
+        plt.plot(epochs, loss, 'bo', label='Training loss')
+        plt.plot(epochs, val_loss, 'b', label='Validation loss')
+        plt.title('Training and validation loss')
+        plt.legend()
+        plt.figure()
+
+        plt.plot(epochs, acc, 'bo', label='Training cat acc')
+        plt.plot(epochs, val_acc, 'b', label='Validation cat acc')
+        plt.title('Training and validation cat accuracy')
+        plt.legend()
+        plt.figure()
+        plt.savefig(fname='Training and validation cat accuracy.jpg')
+        plt.clf()
+
+        plt.plot(epochs, train_top2_acc, 'bo', label='Training top2 acc')
+        plt.plot(epochs, val_top2_acc, 'b', label='Validation top2 acc')
+        plt.title('Training and validation top2 accuracy')
+        plt.legend()
+        plt.figure()
+        plt.savefig(fname='Training and validation top2 accuracy.jpg')
+        plt.clf()
+
+        plt.plot(epochs, train_top3_acc, 'bo', label='Training top3 acc')
+        plt.plot(epochs, val_top3_acc, 'b', label='Validation top3 acc')
+        plt.title('Training and validation top3 accuracy')
+        plt.legend()
+        plt.savefig(fname='Training and validation top3 accuracy.jpg')
+        plt.clf()
+
+        # plt.show()
+        # plt.savefig(fname='training_curves.jpg')
+
+    def plots(sellf, ims, fname, figsize=(12, 6), rows=5, interp=False, titles=None, ):  # 12,6
+        if type(ims[0]) is np.ndarray:
+            ims = np.array(ims).astype(np.uint8)
+            if (ims.shape[-1] != 3):
+                ims = ims.transpose((0, 2, 3, 1))
+        f = plt.figure(figsize=figsize)
+        cols = len(ims) // rows if len(ims) % 2 == 0 else len(ims) // rows + 1
+        for i in range(len(ims)):
+            sp = f.add_subplot(rows, cols, i + 1)
+            sp.axis('Off')
+            if titles is not None:
+                sp.set_title(titles[i], fontsize=16)
+            # plt.imshow(ims[i], interpolation=None if interp else 'none')
+            plt.savefig(fname=fname, dpi=f.dpi)
+
     def plot_confusion_matrix(self, cm, classes,
                               normalize=False,
                               title='Confusion matrix',
@@ -316,4 +464,6 @@ class ModelTrain:
 
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        plt.tight_layout()
+        plt.savefig('confusion_matrix.jpg')
+        plt.clf()
+        # plt.tight_layout()

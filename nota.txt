@@ -1,0 +1,71 @@
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       1.00      0.11      0.20         9
+         bkl       1.00      0.10      0.18        20
+          df       0.07      0.04      0.05        25
+         mel       0.23      0.32      0.26        22
+          nv       0.86      0.94      0.90       417
+        vasc       0.00      0.00      0.00         8
+
+   micro avg       0.80      0.80      0.80       505
+   macro avg       0.45      0.22      0.23       505
+weighted avg       0.78      0.80      0.77       505
+
+
+
+       akiec       0.00      0.00      0.00         4
+         bcc       1.00      0.11      0.20         9
+         bkl       0.75      0.15      0.25        20
+          df       0.12      0.16      0.14        25
+         mel       0.33      0.05      0.08        22
+          nv       0.85      0.94      0.89       417
+        vasc       0.00      0.00      0.00         8
+
+   micro avg       0.80      0.80      0.80       505
+   macro avg       0.44      0.20      0.22       505
+weighted avg       0.77      0.80      0.76       505
+
+
+                precision    recall  f1-score   support
+
+       akiec       0.33      0.50      0.40         4
+         bcc       0.44      0.78      0.56         9
+         bkl       0.34      0.65      0.45        20
+          df       0.12      0.04      0.06        25
+         mel       0.15      0.45      0.22        22
+          nv       0.94      0.82      0.87       417
+        vasc       1.00      1.00      1.00         8
+
+   micro avg       0.75      0.75      0.75       505
+   macro avg       0.48      0.61      0.51       505
+weighted avg       0.83      0.75      0.78       505
+
+
+            precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       0.00      0.00      0.00         9
+         bkl       0.00      0.00      0.00        20
+          df       0.03      0.08      0.05        25
+         mel       0.06      0.95      0.11        22
+          nv       0.00      0.00      0.00       417
+        vasc       0.10      0.75      0.18         8
+
+   micro avg       0.06      0.06      0.06       505
+   macro avg       0.03      0.25      0.05       505
+weighted avg       0.01      0.06      0.01       505
+
+            precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       0.00      0.00      0.00         9
+         bkl       0.00      0.00      0.00        20
+          df       0.00      0.00      0.00        25
+         mel       0.00      0.00      0.00        22
+          nv       0.00      0.00      0.00       417
+        vasc       0.02      1.00      0.03         8
+
+   micro avg       0.02      0.02      0.02       505
+   macro avg       0.00      0.14      0.00       505
+weighted avg       0.00      0.02      0.00       505
