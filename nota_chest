@@ -1,0 +1,45 @@
+Last Step
+val_loss: 3.495234729433543
+val_cat_acc: 0.4696969696969697
+val_top_2_acc: 0.7272727272727273
+val_top_3_acc: 0.8484848484848485
+Best Step
+val_loss: 2.4651108832480477
+val_cat_acc: 0.5454545454545454
+val_top_2_acc: 0.7272727272727273
+val_top_3_acc: 0.8787878787878788
+66/66 [==============================] - 2s 31ms/step
+Confusion matrix, without normalization
+[[ 1  0  1  0  0  0]
+ [ 1  2  1  1  3  0]
+ [ 0  4  2  1  6  0]
+ [ 0  0  1  1  6  0]
+ [ 0  0  0  4 29  0]
+ [ 0  0  0  0  1  1]]
+Traceback (most recent call last):
+  File "main_mobilenet_4.py", line 41, in <module>
+    tralala.make_predictions()
+  File "F:\FSR\SNIKO_Paper\ModelTrain.py", line 392, in make_predictions
+    report = classification_report(y_true, y_pred, target_names=cm_plot_labels)
+  File "G:\Anaconda3\envs\dlml\lib\site-packages\sklearn\metrics\classification.py", line 1543, in classification_report
+    "parameter".format(len(labels), len(target_names))
+ValueError: Number of classes, 6, does not match size of target_names, 7. Try specifying the labels parameter
+
+# mobilenet v2
+val_loss: 3.3739062403228157
+val_cat_acc: 0.5757575757575758
+val_top_2_acc: 0.696969696969697
+val_top_3_acc: 0.7727272727272727
+Best Step
+val_loss: 4.295814049292876
+val_cat_acc: 0.5606060606060606
+val_top_2_acc: 0.6818181818181818
+val_top_3_acc: 0.8181818181818182
+66/66 [==============================] - 3s 41ms/step
+Confusion matrix, without normalization
+[[ 0  0  0  2  0  0]
+ [ 0  0  0  6  2  0]
+ [ 0  0  1  4  8  0]
+ [ 0  0  0  4  4  0]
+ [ 0  0  0  1 32  0]
+ [ 0  0  1  1  0  0]]

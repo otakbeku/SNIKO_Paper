@@ -1,0 +1,197 @@
+Konfigurasi:
+- mobilenet tanpa yang akhir pakai avg pooling
+- dropout diakhir 25%
+- Dense dengan aktivasi softmax 7 kelas
+- epoch 30
+- Not Fine Tuning
+- Best Model present: yes
+
+Last Step
+val_loss: 1.4490673163385803
+val_cat_acc: 0.7861386138613862
+val_top_2_acc: 0.9168316831683169
+val_top_3_acc: 0.9405940594059405
+Best Step
+val_loss: 1.6218708868685268
+val_cat_acc: 0.6376237623762376
+val_top_2_acc: 0.8653465346534653
+val_top_3_acc: 0.9465346534653465
+505/505 [==============================] - 12s 24ms/step
+Confusion matrix, without normalization
+[[  2   0   0   0   2   0   0]
+ [  1   4   0   0   2   1   1]
+ [  2   1  14   1   0   2   0]
+ [  1   1   3   3  13   4   0]
+ [  1   1   3   0  13   4   0]
+ [ 12   6  45  14  59 281   0]
+ [  0   0   0   0   2   1   5]]
+              precision    recall  f1-score   support
+
+       akiec       0.11      0.50      0.17         4
+         bcc       0.31      0.44      0.36         9
+         bkl       0.22      0.70      0.33        20
+          df       0.17      0.12      0.14        25
+         mel       0.14      0.59      0.23        22
+          nv       0.96      0.67      0.79       417
+        vasc       0.83      0.62      0.71         8
+
+   micro avg       0.64      0.64      0.64       505
+   macro avg       0.39      0.52      0.39       505
+weighted avg       0.83      0.64      0.70       505
+
+# 7
+Konfigurasi:
+- mobilenet tanpa yang akhir pakai avg pooling
+- dropout diakhir 25%
+- Dense dengan aktivasi softmax 7 kelas
+- epoch 30
+- Fine Tuning: yes
+- Best Model present: yes
+
+Last Step
+val_loss: 2.0527193848243095
+val_cat_acc: 0.8237623762376237
+val_top_2_acc: 0.8930693069306931
+val_top_3_acc: 0.9267326732673268
+Best Step
+val_loss: 1.7551964020989053
+val_cat_acc: 0.8158415841584158
+val_top_2_acc: 0.900990099009901
+val_top_3_acc: 0.9326732673267327
+505/505 [==============================] - 11s 22ms/step
+Confusion matrix, without normalization
+[[  0   0   0   2   0   2   0]
+ [  0   2   0   0   0   7   0]
+ [  0   1   2   2   1  14   0]
+ [  0   0   0   0   3  22   0]
+ [  0   0   0   0   3  19   0]
+ [  0   2   1   2   7 405   0]
+ [  0   0   0   0   0   8   0]]
+
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       0.40      0.22      0.29         9
+         bkl       0.67      0.10      0.17        20
+          df       0.00      0.00      0.00        25
+         mel       0.21      0.14      0.17        22
+          nv       0.85      0.97      0.91       417
+        vasc       0.00      0.00      0.00         8
+
+   micro avg       0.82      0.82      0.82       505
+   macro avg       0.30      0.20      0.22       505
+weighted avg       0.74      0.82      0.77       505
+
+# 8
+Konfigurasi:
+- mobilenet tanpa yang akhir pakai avg pooling
+- dropout diakhir 25%
+- Dense dengan aktivasi softmax 7 kelas
+- epoch 50
+- Fine Tuning: yes
+- Best Model present: yes
+
+Last Step
+val_loss: 2.146883376673369
+val_cat_acc: 0.7960396039603961
+val_top_2_acc: 0.899009900990099
+val_top_3_acc: 0.9247524752475248
+Best Step
+val_loss: 2.3727428513776747
+val_cat_acc: 0.7603960396039604
+val_top_2_acc: 0.8871287128712871
+val_top_3_acc: 0.9326732673267327
+505/505 [==============================] - 11s 22ms/step
+Confusion matrix, without normalization
+[[  0   0   0   2   0   2   0]
+ [  0   1   0   1   1   6   0]
+ [  0   0   2   5   0  13   0]
+ [  0   0   0   5   2  18   0]
+ [  0   0   0   2   2  18   0]
+ [  0   1   0  33   9 374   0]
+ [  0   0   0   0   0   8   0]]
+G:\Anaconda3\envs\dlml\lib\site-packages\sklearn\metrics\classification.py:1143: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       0.50      0.11      0.18         9
+         bkl       1.00      0.10      0.18        20
+          df       0.10      0.20      0.14        25
+         mel       0.14      0.09      0.11        22
+          nv       0.85      0.90      0.87       417
+        vasc       0.00      0.00      0.00         8
+
+   micro avg       0.76      0.76      0.76       505
+   macro avg       0.37      0.20      0.21       505
+weighted avg       0.76      0.76      0.74       505
+
+V2
+val_loss: 2.084152976054946
+val_cat_acc: 0.803960396039604
+val_top_2_acc: 0.906930693069307
+val_top_3_acc: 0.9267326732673268
+Best Step
+val_loss: 3.279097577532082
+val_cat_acc: 0.7108910891089109
+val_top_2_acc: 0.8930693069306931
+val_top_3_acc: 0.9465346534653465
+505/505 [==============================] - 12s 24ms/step
+Confusion matrix, without normalization
+[[  0   0   0   3   0   1   0]
+ [  0   0   0   2   0   7   0]
+ [  0   0   1   2   0  16   1]
+ [  0   0   0   5   0  20   0]
+ [  0   0   0   2   0  20   0]
+ [  0   0   0  64   0 353   0]
+ [  0   0   0   0   0   8   0]]
+G:\Anaconda3\envs\dlml\lib\site-packages\sklearn\metrics\classification.py:1143: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       0.00      0.00      0.00         9
+         bkl       1.00      0.05      0.10        20
+          df       0.06      0.20      0.10        25
+         mel       0.00      0.00      0.00        22
+          nv       0.83      0.85      0.84       417
+        vasc       0.00      0.00      0.00         8
+
+   micro avg       0.71      0.71      0.71       505
+   macro avg       0.27      0.16      0.15       505
+weighted avg       0.73      0.71      0.70       505
+
+Inception V3
+val_loss: 2.326580864103582
+val_cat_acc: 0.8237623762376237
+val_top_2_acc: 0.897029702970297
+val_top_3_acc: 0.9108910891089109
+Best Step
+val_loss: 2.201986964570764
+val_cat_acc: 0.803960396039604
+val_top_2_acc: 0.8930693069306931
+val_top_3_acc: 0.9227722772277228
+505/505 [==============================] - 38s 76ms/step
+Confusion matrix, without normalization
+[[  0   1   0   0   0   3   0]
+ [  0   0   1   0   1   7   0]
+ [  0   3   3   0   1  11   2]
+ [  0   0   1   0   5  19   0]
+ [  0   0   1   0   5  16   0]
+ [  0   0   3   0  15 393   6]
+ [  0   0   0   0   0   3   5]]
+G:\Anaconda3\envs\dlml\lib\site-packages\sklearn\metrics\classification.py:1143: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00         4
+         bcc       0.00      0.00      0.00         9
+         bkl       0.33      0.15      0.21        20
+          df       0.00      0.00      0.00        25
+         mel       0.19      0.23      0.20        22
+          nv       0.87      0.94      0.90       417
+        vasc       0.38      0.62      0.48         8
+
+   micro avg       0.80      0.80      0.80       505
+   macro avg       0.25      0.28      0.26       505
+weighted avg       0.75      0.80      0.77       505

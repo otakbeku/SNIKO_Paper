@@ -1,4 +1,6 @@
 import tensorflow as tf
+from tensorflow.keras.layers import Dense, Dropout, Conv2D, Activation
+from tensorflow.keras.models import Model
 
 model_list = {'mobilenet':
                   tf.keras.applications.mobilenet.MobileNet(),
@@ -8,6 +10,12 @@ model_list = {'mobilenet':
                   tf.keras.applications.inception_v3.InceptionV3()}
 
 for name, model in model_list.items():
-    print(name)
-    print(model.summary())
+    x = model.output
+    x = Dropout(0.25, name='do_akhir')(x)
+    predictions = Dense(7, activation='softmax')(x)
+    new_model = Model(inputs=model.input, outputs=predictions)
+    for layer in new_model.layers[:-23]:
+        layer.trainable = False
+    print(name, 'jumlah layer: ', len(new_model.layers), 'awal ', len(model.layers))
+    print(new_model.summary())
     print('=' * 10)

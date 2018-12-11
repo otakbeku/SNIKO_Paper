@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import shutil
 import itertools
-# from sklearn.model_selection import train_test_split
-# from sklearn.metrics import confusion_matrix
 import os
 import pickle
 import json
+# from sklearn.model_selection import train_test_split
+# from sklearn.metrics import confusion_matrix
 
 # from sympy import factorial
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
@@ -41,6 +41,7 @@ class ModelTrain:
         self.num_train_samples = 0
         self.num_val_samples = 0
         self.num_test_samples = 0
+        self.num_classes = 0
 
     def create_image_dir(self, image_dir: str, testing_percetange=25, validation_percetage=25):
         # This code is based on: https://github.com/googlecodelabs/tensorflow-for-poets-2/blob/6be494e0300555fd48c095abd6b2764ba4324592/scripts/retrain.py#L125
@@ -78,6 +79,7 @@ class ModelTrain:
                 train_sub_dir = os.path.join(self.train_dir, dir_name)
                 if not os.path.exists(train_sub_dir):
                     os.mkdir(train_sub_dir)
+                    os.mkdir(os.path.join(train_sub_dir, 'n'))
 
                 test_sub_dir = os.path.join(self.test_dir, dir_name)
                 if not os.path.exists(test_sub_dir):
@@ -108,8 +110,8 @@ class ModelTrain:
                 else:
                     if os.path.exists(os.path.join(train_sub_dir, base_name)):
                         continue
-                    shutil.copy(file_name, train_sub_dir)
-                    print(moves.format(base_name, train_sub_dir))
+                    shutil.copy(file_name, train_sub_dir+'\\n')
+                    print(moves.format(base_name, train_sub_dir+'\\n'))
                     # self.num_train_samples += 1
         print('Done')
 
@@ -183,11 +185,15 @@ class ModelTrain:
         print('num train', self.num_train_samples)
         print('num val', self.num_val_samples)
 
-    def data_augmentation2(self, batch_size=16, image_size=224, num_img_aug=1000):
+    def data_augmentation2(self, batch_size=16, image_size=224, num_img_aug=500):
         self.aug_dir = self.train_dir + '_aug'
-        if not os.path.exists(self.aug_dir):
+        if os.path.exists(self.aug_dir):
+            shutil.rmtree(self.aug_dir)
+            os.mkdir(self.aug_dir)
+        else:
             os.mkdir(self.aug_dir)
         for folder in os.listdir(self.train_dir):  # Kelas
+            self.num_classes +=1
             print(os.path.join(self.train_dir, folder))
             folder_path = os.path.join(self.train_dir, folder)
             folder_path_aug = folder_path.replace(self.train_dir, self.aug_dir)
@@ -270,19 +276,37 @@ class ModelTrain:
                                                         shuffle=False
                                                         )
 
-    def define_mobile_net(self, class_weights=None, model='mobilenet', dropout=0.25, epochs=30):
+    def define_mobile_net(self, class_weights=None, model='mobilenet', dropout=0.25, epochs=30, name='V1'):
+        self.name=model
         model_list = {'mobilenet':
-                          tf.keras.applications.mobilenet.MobileNet(),
+                          tf.keras.applications.mobilenet.MobileNet(
+                              include_top=False,
+                              input_shape=(224, 224, 3),
+                              pooling='avg'
+                          ),
                       'mobilenet_v2':
-                          tf.keras.applications.mobilenet_v2.MobileNetV2()}
-        x = model_list[model].layers[-5].output
-        x = Dropout(dropout)(x)
-        x = Conv2D(7, (1, 1),
-                          padding='same',
-                          name='conv_preds')(x)
-        x = Activation('softmax', name='act_softmax')(x)
-        predictions = Dense(7, activation='softmax')(x)
+                          tf.keras.applications.mobilenet_v2.MobileNetV2(
+                              include_top=False,
+                              input_shape=(224, 224, 3),
+                              pooling='avg'
+                          ),
+                      'inception_v3':
+                  tf.keras.applications.inception_v3.InceptionV3(
+                      include_top=False,
+                      input_shape=(224, 224, 3),
+                      pooling='avg'
+                  )
+        }
+        x = model_list[model].output
+        x = Dropout(dropout, name='do_akhir')(x)
+        # x = Conv2D(7, (1, 1),
+        #                   padding='same',
+        #                   name='conv_preds')(x)
+        # x = Activation('softmax', name='act_softmax')(x)
+        predictions = Dense(self.num_classes, activation='softmax')(x)
         self.new_model = Model(inputs=model_list[model].input, outputs=predictions)
+        print(self.new_model.summary())
+        # self.new_model = model_list[model]
 
         for layer in self.new_model.layers[:-23]:
             layer.trainable = False
@@ -297,7 +321,7 @@ class ModelTrain:
 
         if not class_weights:
             class_weights = {
-                0: 1.0,  # akiec
+                0: 0.8,  # akiec
                 1: 0.8,  # bcc
                 2: 0.6,  # bkl
                 3: 0.6,  # df
@@ -305,8 +329,16 @@ class ModelTrain:
                 5: 0.5,  # nv
                 6: 1.0,  # vasc
             }
+            # class_weights = {
+            #     0: 0.8,  # akiec
+            #     1: 0.8,  # bcc
+            #     2: 0.6,  # bkl
+            #     3: 1.0,  # mel
+            #     4: 0.5,  # nv
+            #     5: 1.0,  # vasc
+            # }
 
-        filepath = 'best_model.h5'
+        filepath = 'best_model'+self.name+'.h5'
         checkpoint = ModelCheckpoint(filepath, monitor='val_top_3_accuracy',
                                      verbose=1, save_best_only=True, mode='max')
         reduce_lr = ReduceLROnPlateau(monitor='val_top_3_accuracy',
@@ -323,7 +355,7 @@ class ModelTrain:
                                                     epochs=epochs, verbose=1,
                                                     callbacks=callbacks_list)
 
-        with open('trainHistoryDict', 'wb') as file_pi:
+        with open('trainHistoryDict'+name, 'wb') as file_pi:
             pickle.dump(self.history.history, file_pi)
 
         # with open('historyfile.json', 'w') as f:
@@ -331,10 +363,10 @@ class ModelTrain:
 
         # serialize model to JSON
         model_json = self.new_model.to_json()
-        with open("last_step_model.json", "w") as json_file:
+        with open("last_step_model'+self.name+'.json", "w") as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
-        self.new_model.save_weights("last_step_model.h5")
+        self.new_model.save_weights("last_step_model'+self.name+'.h5")
         print("Saved model to disk")
 
         print(self.new_model.metrics_names)
@@ -378,7 +410,7 @@ class ModelTrain:
         '''
 
 
-    def save_learning_curves(self):
+    def save_learning_curves(self, name='V1'):
         acc = self.history.history['categorical_accuracy']
         val_acc = self.history.history['val_categorical_accuracy']
         loss = self.history.history['loss']
@@ -393,29 +425,31 @@ class ModelTrain:
         plt.plot(epochs, val_loss, 'b', label='Validation loss')
         plt.title('Training and validation loss')
         plt.legend()
-        plt.figure()
+        plt.savefig(fname='Training and validation loss'+self.name+'.jpg')
+        plt.clf()
+        # plt.figure()
 
         plt.plot(epochs, acc, 'bo', label='Training cat acc')
         plt.plot(epochs, val_acc, 'b', label='Validation cat acc')
         plt.title('Training and validation cat accuracy')
         plt.legend()
-        plt.figure()
-        plt.savefig(fname='Training and validation cat accuracy.jpg')
+        # plt.figure()
+        plt.savefig(fname='Training and validation cat accuracy'+self.name+'.jpg')
         plt.clf()
 
         plt.plot(epochs, train_top2_acc, 'bo', label='Training top2 acc')
         plt.plot(epochs, val_top2_acc, 'b', label='Validation top2 acc')
         plt.title('Training and validation top2 accuracy')
         plt.legend()
-        plt.figure()
-        plt.savefig(fname='Training and validation top2 accuracy.jpg')
+        # plt.figure()
+        plt.savefig(fname='Training and validation top2 accuracy'+self.name+'.jpg')
         plt.clf()
 
         plt.plot(epochs, train_top3_acc, 'bo', label='Training top3 acc')
         plt.plot(epochs, val_top3_acc, 'b', label='Validation top3 acc')
         plt.title('Training and validation top3 accuracy')
         plt.legend()
-        plt.savefig(fname='Training and validation top3 accuracy.jpg')
+        plt.savefig(fname='Training and validation top3 accuracy'+self.name+'.jpg')
         plt.clf()
 
         # plt.show()
@@ -439,7 +473,7 @@ class ModelTrain:
     def plot_confusion_matrix(self, cm, classes,
                               normalize=False,
                               title='Confusion matrix',
-                              cmap=plt.cm.Blues):
+                              cmap=plt.cm.Blues, name='V1'):
         if normalize:
             cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
             print("Normalized confusion matrix")
@@ -464,6 +498,7 @@ class ModelTrain:
 
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        plt.savefig('confusion_matrix.jpg')
+        plt.tight_layout()
+        plt.savefig('confusion_matrix'+self.name+'.jpg')
         plt.clf()
         # plt.tight_layout()
