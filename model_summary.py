@@ -2,10 +2,11 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dense, Dropout, Conv2D, Activation
 from tensorflow.keras.models import Model
 
-model_list = {'mobilenet':
-                  tf.keras.applications.mobilenet.MobileNet(),
-              'mobilenet_v2':
-                  tf.keras.applications.mobilenet_v2.MobileNetV2(),
+model_list = {
+    # 'mobilenet':
+    #               tf.keras.applications.mobilenet.MobileNet(),
+              # 'mobilenet_v2':
+              #     tf.keras.applications.mobilenet_v2.MobileNetV2(),
               'inception_v3':
                   tf.keras.applications.inception_v3.InceptionV3()}
 
@@ -17,5 +18,7 @@ for name, model in model_list.items():
     for layer in new_model.layers[:-23]:
         layer.trainable = False
     print(name, 'jumlah layer: ', len(new_model.layers), 'awal ', len(model.layers))
-    print(new_model.summary())
+    p = new_model.summary()
+    print(p)
+
     print('=' * 10)

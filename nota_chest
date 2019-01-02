@@ -16,14 +16,6 @@ Confusion matrix, without normalization
  [ 0  0  1  1  6  0]
  [ 0  0  0  4 29  0]
  [ 0  0  0  0  1  1]]
-Traceback (most recent call last):
-  File "main_mobilenet_4.py", line 41, in <module>
-    tralala.make_predictions()
-  File "F:\FSR\SNIKO_Paper\ModelTrain.py", line 392, in make_predictions
-    report = classification_report(y_true, y_pred, target_names=cm_plot_labels)
-  File "G:\Anaconda3\envs\dlml\lib\site-packages\sklearn\metrics\classification.py", line 1543, in classification_report
-    "parameter".format(len(labels), len(target_names))
-ValueError: Number of classes, 6, does not match size of target_names, 7. Try specifying the labels parameter
 
 # mobilenet v2
 val_loss: 3.3739062403228157
