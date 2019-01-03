@@ -378,7 +378,7 @@ class ModelTrain:
                                                     epochs=epochs, verbose=1,
                                                     callbacks=callbacks_list)
 
-        with open(os.path.join(self.base_dir, 'trainHistoryDict' + name), 'wb') as file_pi:
+        with open(os.path.join(self.base_dir, 'trainHistoryDict' + self.name), 'wb') as file_pi:
             pickle.dump(self.history.history, file_pi)
 
         # with open('historyfile.json', 'w') as f:
