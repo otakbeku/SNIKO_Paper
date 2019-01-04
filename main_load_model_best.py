@@ -13,10 +13,10 @@ from tensorflow.keras.layers import Dense, Dropout, Conv2D, Activation
 from tensorflow.keras.optimizers import Adam
 
 # base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\abdomen_base'
-base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\chest_base'
+# base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\chest_base'
 # base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\back_base'
 # base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\lower_base'
-# base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\upper_base'
+base_dir = 'F:\\FSR\\dataset\\skin-cancer-mnist-ham10000\\upper_base'
 train_dir = os.path.join(base_dir, 'train_dir')
 val_dir = os.path.join(base_dir, 'val_dir')
 test_dir = os.path.join(base_dir, 'test_dir')
@@ -106,28 +106,13 @@ def plot_confusion_matrix(cm, classes, base_dir,
 
 
 for file in glob.glob(os.path.join(base_dir, 'best_*.h5')):
-    # loaded_model = load_model(file)
-    x = model_list[model[count]].output
-    x = Dropout(0.25, name='do_akhir')(x)
-    # x = Conv2D(7, (1, 1),
-    #                   padding='same',
-    #                   name='conv_preds')(x)
-    # x = Activation('softmax', name='act_softmax')(x)
-    predictions = Dense(7, activation='softmax')(x)
-    loaded_model = Model(inputs=model_list[model[count]].input, outputs=predictions)
-    loaded_model.compile(Adam(lr=0.01),
-                         loss='categorical_crossentropy',
-                         metrics=[categorical_accuracy,
-                                  top_2_accuracy,
-                                  top_3_accuracy])
-    loaded_model.load_weights(file)
-    # loaded_model = tf.contrib.saved_model.load_keras_model(file)
     datagen = data_generators[model[count]]
     filename = os.path.join(base_dir, 'best_predict_' + model[count] + '.txt')
     name = model
     f = open(filename, 'w+')
     cm_plot_labels = []
     num_val_samples = 0
+    num_classes = len(os.listdir(val_dir))
     for folder in os.listdir(base_dir):
         path = os.path.join(base_dir, folder)
         if os.path.isdir(path):
@@ -142,6 +127,16 @@ for file in glob.glob(os.path.join(base_dir, 'best_*.h5')):
     test_batches = datagen.flow_from_directory(directory=os.path.join(base_dir, 'val_dir'),
                                                target_size=(image_size, image_size),
                                                batch_size=1, shuffle=False)
+    x = model_list[model[count]].output
+    x = Dropout(0.25, name='do_akhir')(x)
+    predictions = Dense(num_classes, activation='softmax')(x)
+    loaded_model = Model(inputs=model_list[model[count]].input, outputs=predictions)
+    loaded_model.compile(Adam(lr=0.01),
+                         loss='categorical_crossentropy',
+                         metrics=[categorical_accuracy,
+                                  top_2_accuracy,
+                                  top_3_accuracy])
+    loaded_model.load_weights(file)
     predictions = loaded_model.predict_generator(test_batches, steps=num_val_samples, verbose=1)
     test_labels = test_batches.classes
     cm = confusion_matrix(test_labels, predictions.argmax(axis=1))
